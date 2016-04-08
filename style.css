@@ -1,0 +1,142 @@
+body {
+	overflow: hidden;
+	margin: 0 auto;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+.wrapper {
+	box-sizing: border-box;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	display: -webkit-flex;
+	height: 100vh;
+	width: 100vw;
+}
+
+#canvas-wrapper {
+	background-color: #b4b4b4;
+	position: relative;
+	-webkit-box-flex: 4;
+	-webkit-flex: 4;
+	    -ms-flex: 4;
+	        flex: 4;
+	width: 100%;
+	height: 100%;
+	padding: 20px;
+}
+
+#display {
+	position: relative;
+	background-color: #b4b4b4;
+}
+
+.file-controls {
+	background-color: #487064;
+	height: 50px;
+}
+
+input[type="file"] {
+	height: 25px;
+	margin: 8px;
+}
+button {
+	right: 5vw;
+	width: 80px;
+	position: absolute;
+	margin: 8px 0 0 0;
+	padding: 0;
+	height: 25px;
+}
+.title {
+	display: inline;
+	left: 0;
+	margin: 0 auto;
+	padding: 8px;
+}
+
+.control-panel {
+	-webkit-box-flex: 1;
+	-webkit-flex: 1;
+	    -ms-flex: 1;
+	        flex: 1;
+	height:100%;
+	position: relative;
+	bottom: 0;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	    -ms-flex-direction: column;
+	        flex-direction: column;
+	margin: 0 auto;
+	padding-right: 36px;
+	background-color: #666666;
+}
+
+.control {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+}
+
+.toggle {
+	font-size: 14px;
+	width: 100%;
+	height: 35px;
+	position: relative;
+}
+
+
+.on {
+	transition: all 200ms;
+	-webkit-transition: all 200ms;
+	color: white;
+}
+
+.off {
+	color: black;
+	transition: all 200ms;
+	-webkit-transition: all 200ms;;
+}
+
+input[type="range"] {
+	width: 100%;
+}
+
+#label {
+	padding: 5px;
+	width: 100%;
+}
+
+.label {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 100%;
+	margin: 5px;
+	text-align: right;
+	transition: all 200ms;
+	-webkit-transition: all 200ms;
+}
+
+.right {
+	position: absolute;
+	right: 0;
+	left: 0;
+} 
+
+#backup {
+	display: none;
+}
+
+@media only screen and (min-width: 900px) {
+	.toggle {
+		font-size: 24px;
+	}
+	
+}
