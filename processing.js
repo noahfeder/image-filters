@@ -9,8 +9,6 @@ $(document).ready(function() {
   *
   */
 
-  "use strict";
-
   /** add event listener for the file upload to get this party started */
 
   var upload = document.getElementById('upload');
@@ -25,11 +23,11 @@ $(document).ready(function() {
   var backup = document.getElementById('backup');
   var ctx = display.getContext('2d');
   var ctx2 = backup.getContext('2d');
-  var img2;
 
   /** When the Choose File button is clicked, create a FileReader() object and Image()
   *  Find the right proportional dimensions to fit the img comfortably inside the available wrapper
   *  Draw the image on the display and backup canvases
+  *  Additionally, set the maximum border width to 1/2 the smaller of the width or height
   */
 
   function handleImage(e) {
@@ -48,11 +46,13 @@ $(document).ready(function() {
           height *= MAX_WIDTH / width;
           width = MAX_WIDTH;
           }
+      $('#border-val').attr('max', height / 3);
         } else {
           if (height > MAX_HEIGHT) {
           width *= MAX_HEIGHT / height;
           height = MAX_HEIGHT;
           }
+      $('#border-val').attr('max', width / 3);
         }
         display.width = width;
         display.height = height;
@@ -78,7 +78,8 @@ $(document).ready(function() {
       'invert' : '0',
       'opacity' : '1',
       'saturate' : '1',
-      'sepia' : '0'
+      'sepia' : '0',
+    'border' : '0'
     };
 
   var defaults = {
@@ -90,7 +91,8 @@ $(document).ready(function() {
       'invert' : '0',
       'opacity' : '1',
       'saturate' : '1',
-      'sepia' : '0'
+      'sepia' : '0',
+    'border' : '0'
     };
 
   /**
@@ -227,6 +229,7 @@ $(document).ready(function() {
 
     changeAll: function() {
       var pixels = ctx2.getImageData(0,0,backup.width,backup.height);
+      var globalR = 0, globalG = 0, globalB = 0, pixelCount = 0;
       for (var i = 0; i < pixels.data.length; i += 4) {
         var r = pixels.data[i];
         var g = pixels.data[i + 1];
@@ -243,19 +246,36 @@ $(document).ready(function() {
         pixels.data[i] = rgb[0];
         pixels.data[i + 1] = rgb[1];
         pixels.data[i + 2] = rgb[2];
+      globalR += rgb[0];
+      globalG += rgb[1];
+      globalB += rgb[2];
+      pixelCount++;
         if (vals.opacity !== defaults.opacity) {
           pixels.data[i + 3] *= vals.opacity;
         }
       }
-      Filters.writeIMG(pixels);
+      var averagePixel = '#' + parseInt(0xff - (globalR/pixelCount)).toString(16) + parseInt(0xff - (globalG/pixelCount)).toString(16) + parseInt(0xff - (globalB/pixelCount)).toString(16);
+      Filters.writeIMG(pixels, averagePixel);
+    },
+  
+  /** Draw a high-contrast border that is the inverse of the average of all pixels*/
+  
+    drawBorder: function(width, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(0,0,display.width,width);
+      ctx.fillRect(0,width,width,display.height);
+      ctx.fillRect(width,(display.height - width), display.width, display.height);
+      ctx.fillRect((display.width - width), width, display.width, (display.height - width));
     },
 
     /**
     *  Clear the full image.
     *  If the given blur radius isn't 0, apply StackBlur
-    *  Finally, use putImageData to place the computed pixels on the display context */
+    *  Finally, use putImageData to place the computed pixels on the display context 
+  *  If there is a border to be drawn, draw it
+  */
 
-    writeIMG: function(pixels) {
+    writeIMG: function(pixels, averagePixel) {
       ctx.clearRect(0,0,display.width,display.height);
       var radius = Math.round(vals.blur);
       if (radius > 0) {
@@ -263,6 +283,9 @@ $(document).ready(function() {
       }
       var newData = new ImageData(pixels.data, display.width, display.height);
       ctx.putImageData(newData,0,0);
+    if (vals.border != defaults.border) {
+      Filters.drawBorder(vals.border, averagePixel);
+    }
     }
   };
 
@@ -295,8 +318,8 @@ $(document).ready(function() {
    */
   function rgbToHsl(r, g, b){
     r /= 255;
-	g /= 255;
-	b /= 255;
+  g /= 255;
+  b /= 255;
     var max = Math.max(r, g, b), min = Math.min(r, g, b);
     var h, s, l = (max + min) / 2;
 
@@ -309,7 +332,7 @@ $(document).ready(function() {
         case r: h = (g - b) / d + (g < b ? 6 : 0); break;
         case g: h = (b - r) / d + 2; break;
         case b: h = (r - g) / d + 4; break;
-		default: break;
+    default: break;
       }
       h /= 6;
     }
@@ -339,7 +362,7 @@ $(document).ready(function() {
     }else{
       function hue2rgb(p, q, t){
         if(t < 0) {t += 1;}
-	    if(t > 1) {t -= 1;}
+      if(t > 1) {t -= 1;}
         if(t < 1/6) {return p + (q - p) * 6 * t;}
         if(t < 1/2) {return q;}
         if(t < 2/3) {return p + (q - p) * (2/3 - t) * 6;}
