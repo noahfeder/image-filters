@@ -15,8 +15,8 @@ $(document).ready(function() {
   upload.addEventListener('change', handleImage, false);
 
   /** Create two canvas objects
-  * display is what will be displayed, while backup is on a hidden canvas for storing the original image
-  * additionally grab the contexts for each
+  * display is what will be displayed, while backup is on a hidden canvas for storing the original image.
+  * Additionally, grab the contexts for each.
   */
 
   var display = document.getElementById('display');
@@ -24,10 +24,10 @@ $(document).ready(function() {
   var ctx = display.getContext('2d');
   var ctx2 = backup.getContext('2d');
 
-  /** When the Choose File button is clicked, create a FileReader() object and Image()
-  *  Find the right proportional dimensions to fit the img comfortably inside the available wrapper
-  *  Draw the image on the display and backup canvases
-  *  Additionally, set the maximum border width to 1/2 the smaller of the width or height
+  /** When the Choose File button is clicked, create a FileReader() object and Image().
+  *  Find the right proportional dimensions to fit the img comfortably inside the available wrapper.
+  *  Draw the image on the display and backup canvases.
+  *  Additionally, set the maximum border width to 1/2 the smaller of the width or height.
   */
 
   function handleImage(e) {
@@ -46,13 +46,13 @@ $(document).ready(function() {
           height *= MAX_WIDTH / width;
           width = MAX_WIDTH;
           }
-      $('#border-val').attr('max', height / 3);
+          $('#border-val').attr('max', height / 3);
         } else {
           if (height > MAX_HEIGHT) {
           width *= MAX_HEIGHT / height;
           height = MAX_HEIGHT;
           }
-      $('#border-val').attr('max', width / 3);
+          $('#border-val').attr('max', width / 3);
         }
         display.width = width;
         display.height = height;
@@ -67,7 +67,7 @@ $(document).ready(function() {
     reader.readAsDataURL(e.target.files[0]);
   }
 
-  /** objects to store default and dynamic values for each filter */
+  /** Objects to store default and dynamic values for each filter */
 
   var vals = {
       'blur' : '0',
@@ -113,6 +113,26 @@ $(document).ready(function() {
   });
 
   /**
+  * Click reset button to redraw image as original and reset all in-page and in-image styles.
+  */
+  var resetAll = function() {
+    var ranges = document.querySelectorAll('.control input');
+    ranges.forEach(function(el) {
+    el.value = defaults[el.name];
+    });
+    $('.right').removeClass('right');
+    $('.on').removeClass('on');
+    for (var val in vals) {
+      vals[val] = defaults[val];
+    }
+    Filters.changeAll();
+  }
+
+  var resetButton = document.querySelector('#reset');
+
+  resetButton.addEventListener('click',resetAll);
+
+  /**
   *  The Filters object! All the various CSS3-standard filters (excluding drop-shadow), which take arrays
   *      of either RGB or HSL triples. RGB values 0-255, HSL values 0-1, per @mjijackson spec.
   *  Opacity filter is handled within the changeAll function.
@@ -128,8 +148,7 @@ $(document).ready(function() {
         var br = (vals.brightness - 1) * 255;
         for (var i = 0; i < 3; i++) {
           rgb[i] += br;
-          if (rgb[i] > 255) {rgb[i] = 255;}
-          if (rgb[i] < 0) {rgb[i] = 0;}
+          rgb[i] = (rgb[i] > 255) ? 255 : ((rgb[i] < 0) ? 0 : rgb[i]); //normalize values
         }
       }
       return rgb;
@@ -147,8 +166,7 @@ $(document).ready(function() {
         var cf = (259 * (c + 255))/(255 * (259 - c));
         for (var i = 0; i < 3; i++) {
           rgb[i] = (cf * (rgb[i] - 128)) + 128;
-          if (rgb[i] > 255) {rgb[i] = 255;}
-          if (rgb[i] < 0) {rgb[i] = 0;}
+          rgb[i] = (rgb[i] > 255) ? 255 : ((rgb[i] < 0) ? 0 : rgb[i]); //normalize values
         }
       }
       return rgb;
@@ -171,9 +189,7 @@ $(document).ready(function() {
     hue: function(hsl) {
       if (vals.hue !== defaults.hue) {
         hsl[0] += (vals.hue / 360);
-        if (hsl[0] > 1) {
-          hsl[0] -= 1;
-        }
+        hsl[0] -= (hsl[0] > 1) ? 1 : 0; //normalize values
       }
       return hsl;
     },
@@ -196,9 +212,7 @@ $(document).ready(function() {
     saturate: function(hsl) {
       if (vals.saturate !== defaults.saturate) {
         hsl[1] *= vals.saturate;
-        if (hsl[1] > 1) {
-          hsl[1] = 1;
-        }
+        hsl[1] = (hsl[1] > 1) ? 1 : hsl[1]; //normalize value
       }
       return hsl;
     },
@@ -257,9 +271,9 @@ $(document).ready(function() {
       var averagePixel = '#' + parseInt(0xff - (globalR/pixelCount)).toString(16) + parseInt(0xff - (globalG/pixelCount)).toString(16) + parseInt(0xff - (globalB/pixelCount)).toString(16);
       Filters.writeIMG(pixels, averagePixel);
     },
-  
+
   /** Draw a high-contrast border that is the inverse of the average of all pixels*/
-  
+
     drawBorder: function(width, color) {
       ctx.fillStyle = color;
       ctx.fillRect(0,0,display.width,width);
@@ -271,7 +285,7 @@ $(document).ready(function() {
     /**
     *  Clear the full image.
     *  If the given blur radius isn't 0, apply StackBlur
-    *  Finally, use putImageData to place the computed pixels on the display context 
+    *  Finally, use putImageData to place the computed pixels on the display context
   *  If there is a border to be drawn, draw it
   */
 

@@ -1,87 +1,88 @@
 <!doctype HTML>
 <html>
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta charset="UTF-8" />
-	<title>Simple Image Manipulator</title>
-	<link rel="stylesheet" type="text/css" href="style.css" />
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-	<script src="processing.js"></script>
-	<script src="stackblur.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <title>Simple Image Manipulator</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <script src="processing.js"></script>
+  <script src="stackblur.min.js"></script>
 </head>
 <body>
-	<div class="file-controls">
-				<input type="file" id="upload" name="upload" />
-				<a id="download"><button id="save">Save</button></a>
-				<div class="title">Simple Image Manipulator</div>
-			</div>
-	<div class="wrapper">
-		<div id="canvas-wrapper">
-			<canvas id="display"></canvas>
-		</div>
-		<div class="control-panel">
-			<div class="control">
-				<div class="off toggle" id="blur">
-					<label for="blur-val"><div class="label">Blur</div></label>
-				</div>
-				<input type="range" id="blur-val" name="blur" min="0" max="25" value="0">
-			</div>
-			<div class="control">		
-				<div class="off toggle" id="brightness">
-					<label for="brightness-val"><div class="label">Brightness</div></label>
-				</div>
-				<input type="range" id="brightness-val" name="brightness" min="0" max="2" value="1" step=".05" />
-			</div>
-			<div class="control">
-				<div class="off toggle" id="contrast">
-					<label for="contrast-val"><div class="label">Contrast</div></label>
-				</div>
-				<input type="range" id="contrast-val" name="contrast" min="0" max="2" value="1" step=".05" />
-			</div>
-			<div class="control">
-				<div class="off toggle" id="grayscale">
-					<label for="grayscale-val"><div class="label">Grayscale</div></label>
-				</div>
-				<input type="range" id="grayscale-val" name="grayscale" min="0" max="1" value="0" step=".05" />
-			</div>
-			<div class="control">			
-				<div class="off toggle" id="hue">
-					<label for="hue-val"><div class="label">Hue</div></label>
-				</div>
-				<input type="range" id="hue-val" name="hue" min="0" max="360" value="0" step="10" />
-			</div>
-			<div class="control">			
-				<div class="off toggle" id="invert">
-					<label for="invert-val"><div class="label">Invert</div></label>
-				</div>
-				<input type="range" id="invert-val" name="invert" min="0" max="1" value="0" step=".05" />			
-			</div>
-			<div class="control">			
-				<div class="off toggle" id="opacity">
-					<label for="opacity-val"><div class="label">Opacity</div></label>
-				</div>
-				<input type="range" id="opacity-val" name="opacity" min="0" max="1" value="1" step=".05" />
-			</div>
-			<div class="control">			
-				<div class="off toggle" id="saturate">
-					<label for="saturate-val"><div class="label">Saturate</div></label>
-				</div>
-				<input type="range" id="saturate-val" name="saturate" min="0" max="2" value="1" step=".05" />
-			</div>
-			<div class="control">	
-				<div class="off toggle" id="sepia">
-					<label for="sepia-val"><div class="label">Sepia</div></label>
-				</div>
-				<input type="range" id="sepia-val" name="sepia" min="0" max="1" value="0" step=".05" />
-			</div>
-			<div class="control">	
-				<div class="off toggle" id="border">
-					<label for="border-val"><div class="label">Border</div></label>
-				</div>
-				<input type="range" id="border-val" name="border" min="0" max="50" value="0" step="1" />
-			</div>
-		</div>
-	</div>
-	<canvas width="1" height="1" id="backup"></canvas>
+  <div class="file-controls">
+        <input type="file" id="upload" name="upload" />
+        <a id="download"><button id="save">Save</button></a>
+        <div class="title">Simple Image Manipulator</div>
+        <button id="reset">Reset</button>
+      </div>
+  <div class="wrapper">
+    <div id="canvas-wrapper">
+      <canvas id="display"></canvas>
+    </div>
+    <div class="control-panel">
+      <div class="control">
+        <div class="off toggle" id="blur">
+          <label for="blur-val"><div class="label">Blur</div></label>
+        </div>
+        <input type="range" id="blur-val" name="blur" min="0" max="25" value="0">
+      </div>
+      <div class="control">
+        <div class="off toggle" id="brightness">
+          <label for="brightness-val"><div class="label">Brightness</div></label>
+        </div>
+        <input type="range" id="brightness-val" name="brightness" min="0" max="2" value="1" step=".05" />
+      </div>
+      <div class="control">
+        <div class="off toggle" id="contrast">
+          <label for="contrast-val"><div class="label">Contrast</div></label>
+        </div>
+        <input type="range" id="contrast-val" name="contrast" min="0" max="2" value="1" step=".05" />
+      </div>
+      <div class="control">
+        <div class="off toggle" id="grayscale">
+          <label for="grayscale-val"><div class="label">Grayscale</div></label>
+        </div>
+        <input type="range" id="grayscale-val" name="grayscale" min="0" max="1" value="0" step=".05" />
+      </div>
+      <div class="control">
+        <div class="off toggle" id="hue">
+          <label for="hue-val"><div class="label">Hue</div></label>
+        </div>
+        <input type="range" id="hue-val" name="hue" min="0" max="360" value="0" step="10" />
+      </div>
+      <div class="control">
+        <div class="off toggle" id="invert">
+          <label for="invert-val"><div class="label">Invert</div></label>
+        </div>
+        <input type="range" id="invert-val" name="invert" min="0" max="1" value="0" step=".05" />
+      </div>
+      <div class="control">
+        <div class="off toggle" id="opacity">
+          <label for="opacity-val"><div class="label">Opacity</div></label>
+        </div>
+        <input type="range" id="opacity-val" name="opacity" min="0" max="1" value="1" step=".05" />
+      </div>
+      <div class="control">
+        <div class="off toggle" id="saturate">
+          <label for="saturate-val"><div class="label">Saturate</div></label>
+        </div>
+        <input type="range" id="saturate-val" name="saturate" min="0" max="2" value="1" step=".05" />
+      </div>
+      <div class="control">
+        <div class="off toggle" id="sepia">
+          <label for="sepia-val"><div class="label">Sepia</div></label>
+        </div>
+        <input type="range" id="sepia-val" name="sepia" min="0" max="1" value="0" step=".05" />
+      </div>
+      <div class="control">
+        <div class="off toggle" id="border">
+          <label for="border-val"><div class="label">Border</div></label>
+        </div>
+        <input type="range" id="border-val" name="border" min="0" max="50" value="0" step="1" />
+      </div>
+    </div>
+  </div>
+  <canvas width="1" height="1" id="backup"></canvas>
 </body>
 </html>
