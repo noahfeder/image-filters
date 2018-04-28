@@ -1,4 +1,4 @@
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function(event) {
   /**
   * Simple Image Manipulation by @noahfeder
   *
@@ -21,8 +21,40 @@ $(document).ready(function() {
 
   var display = document.getElementById('display');
   var backup = document.getElementById('backup');
-  var ctx = display.getContext('2d');
-  var ctx2 = backup.getContext('2d');
+  var displayCtx = display.getContext('2d');
+  var backupCtx = backup.getContext('2d');
+
+
+  /** Set appropriate dimensions for drawing an image on the screen
+  * width is the width of the chosen image
+  * height is the height of the chosen image
+  */
+
+  function setDimensions (width, height) {
+    var canvas = document.getElementById('canvas-wrapper');
+    var MAX_WIDTH = canvas.width * 0.9;
+    var MAX_HEIGHT = canvas.height * 0.9;
+    var borderVal = document.getElementById('border-val');
+
+    if (width > height) {
+      if (width > MAX_WIDTH) {
+        height *= MAX_WIDTH / width;
+        width = MAX_WIDTH;
+      }
+      borderVal.setAttribute('max', height / 3);
+    } else {
+      if (height > MAX_HEIGHT) {
+        width *= MAX_HEIGHT / height;
+        height = MAX_HEIGHT;
+      }
+      borderVal.setAttribute('max', width / 3);
+    }
+
+    display.width = width;
+    display.height = height;
+    backup.width = width;
+    backup.height = height;
+  }
 
   /** When the Choose File button is clicked, create a FileReader() object and Image().
   *  Find the right proportional dimensions to fit the img comfortably inside the available wrapper.
@@ -35,35 +67,17 @@ $(document).ready(function() {
     reader.onload = function(event) {
       var img = new Image();
       img.onload = function() {
-        var canvas = $('#canvas-wrapper');
-        var MAX_WIDTH = canvas.innerWidth() * 0.9;
-        var MAX_HEIGHT = canvas.innerHeight() * 0.9;
         var width = img.width;
         var height = img.height;
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-          }
-          $('#border-val').attr('max', height / 3);
-        } else {
-          if (height > MAX_HEIGHT) {
-          width *= MAX_HEIGHT / height;
-          height = MAX_HEIGHT;
-          }
-          $('#border-val').attr('max', width / 3);
-        }
-        display.width = width;
-        display.height = height;
-        backup.width = width;
-        backup.height = height;
+        setDimensions(width, height);
 
-        ctx.drawImage(img,0,0,width,height);
-        ctx2.drawImage(img,0,0,width,height);
+        displayCtx.drawImage(img, 0, 0, width, height);
+        backupCtx.drawImage(img, 0, 0, width, height);
       };
       img.src = event.target.result;
     };
+
     reader.readAsDataURL(e.target.files[0]);
   }
 
@@ -101,27 +115,51 @@ $(document).ready(function() {
   *  Then, apply all filters with changeAll()
   */
 
-  $('input[type="range"]').change(function() {
-    var filter = $(this).attr('name');
-    vals[filter] = $(this).val();
-    if ($(this).val() != defaults[filter]) {
-      $("#" + filter).addClass('on').removeClass('off').children().children('div').addClass('right');
+
+  var onChange = function(event) {
+    var filter = this.getAttribute('name');
+    var filterElement = document.getElementById(filter);
+    var filterLabel = document.querySelector('#' + filter + ' label div.label');
+
+    vals[filter] = this.value;
+    if (vals[filter] != defaults[filter]) {
+      filterElement.classList.remove('on');
+      filterElement.classList.add('off');
+      filterLabel.classList.remove('right');
     } else {
-      $("#" + filter).addClass('off').removeClass('on').children().children('div').removeClass('right');
+      filterElement.classList.add('on');
+      filterElement.classList.remove('off');
+      filterLabel.classList.add('right');
     }
     Filters.changeAll();
+  };
+
+
+  var ranges = document.querySelectorAll('input[type="range"');
+  ranges.forEach(function(range) {
+    range.addEventListener('change', onChange);
   });
+
+  //Remove class from all elements
+
+  var removeClassAll = function(className) {
+    var elements = document.querySelectorAll('.' + className);
+    elements.forEach(function(el) {
+      el.classList.remove(className);
+    });
+  }
 
   /**
   * Click reset button to redraw image as original and reset all in-page and in-image styles.
   */
+
   var resetAll = function() {
     var ranges = document.querySelectorAll('.control input');
     ranges.forEach(function(el) {
-    el.value = defaults[el.name];
+      el.value = defaults[el.name];
     });
-    $('.right').removeClass('right');
-    $('.on').removeClass('on');
+    removeClassAll('right');
+    removeClassAll('on');
     for (var val in vals) {
       vals[val] = defaults[val];
     }
@@ -242,7 +280,7 @@ $(document).ready(function() {
     *  Finally we write the image to the display canvas*/
 
     changeAll: function() {
-      var pixels = ctx2.getImageData(0,0,backup.width,backup.height);
+      var pixels = backupCtx.getImageData(0,0,backup.width,backup.height);
       var globalR = 0, globalG = 0, globalB = 0, pixelCount = 0;
       for (var i = 0; i < pixels.data.length; i += 4) {
         var r = pixels.data[i];
@@ -275,11 +313,11 @@ $(document).ready(function() {
   /** Draw a high-contrast border that is the inverse of the average of all pixels*/
 
     drawBorder: function(width, color) {
-      ctx.fillStyle = color;
-      ctx.fillRect(0,0,display.width,width);
-      ctx.fillRect(0,width,width,display.height);
-      ctx.fillRect(width,(display.height - width), display.width, display.height);
-      ctx.fillRect((display.width - width), width, display.width, (display.height - width));
+      displayCtx.fillStyle = color;
+      displayCtx.fillRect(0,0,display.width,width);
+      displayCtx.fillRect(0,width,width,display.height);
+      displayCtx.fillRect(width,(display.height - width), display.width, display.height);
+      displayCtx.fillRect((display.width - width), width, display.width, (display.height - width));
     },
 
     /**
@@ -290,13 +328,13 @@ $(document).ready(function() {
   */
 
     writeIMG: function(pixels, averagePixel) {
-      ctx.clearRect(0,0,display.width,display.height);
+      displayCtx.clearRect(0,0,display.width,display.height);
       var radius = Math.round(vals.blur);
       if (radius > 0) {
         StackBlur.imageDataRGBA(pixels, 0, 0, display.width, display.height, radius);
       }
       var newData = new ImageData(pixels.data, display.width, display.height);
-      ctx.putImageData(newData,0,0);
+      displayCtx.putImageData(newData,0,0);
     if (vals.border != defaults.border) {
       Filters.drawBorder(vals.border, averagePixel);
     }
@@ -305,7 +343,10 @@ $(document).ready(function() {
 
   /** Save the modified image! */
 
-  $('#download').click(function() {
+  var downloadButton = document.getElementById('download');
+
+  downloadButton.addEventListener('click', function(e) {
+    console.log(this);
     function downloadCanvas(link, canvasId, filename) {
     link.href = document.getElementById(canvasId).toDataURL();
     link.download = filename;
