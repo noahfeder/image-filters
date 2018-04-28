@@ -7,21 +7,31 @@
   <link rel="stylesheet" type="text/css" href="style.css" />
   <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script> -->
   <script src="stackblur.min.js"></script>
+  <script src="meme_data.js"></script>
+  <script src="helpers.js"></script>
   <script src="processing.js"></script>
 </head>
 <body>
   <div class="file-controls">
-    <input type="file" id="upload" name="upload" />
-    <a id="download"><button id="save">Save</button></a>
-    <div class="title">Simple Image Manipulator</div>
-    <button id="reset">Reset</button>
-  </div>
+      <input type="file" id="upload" name="upload" />
+      <select id="memes">
+        <option></option>
+        <option value="boyfriend">Boyfriend</option>
+      </select>
+      <a id="download"><button id="save">Save</button></a>
+      <div class="title">Simple Image Manipulator</div>
+      <button id="reset">Reset</button>
+    </div>
   <div class="wrapper">
     <div id="canvas-wrapper">
       <canvas id="display"></canvas>
     </div>
     <div class="control-panel">
-      <div class="control">
+    <input type="text">
+    <input type="text">
+    <input type="text">
+    <button id="writeText">Write</button>
+<!--       <div class="control">
         <div class="off toggle" id="blur">
           <label for="blur-val"><div class="label">Blur</div></label>
         </div>
@@ -80,7 +90,7 @@
           <label for="border-val"><div class="label">Border</div></label>
         </div>
         <input type="range" id="border-val" name="border" min="0" max="50" value="0" step="1" />
-      </div>
+      </div> -->
     </div>
   </div>
   <canvas width="1" height="1" id="backup"></canvas>

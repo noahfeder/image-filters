@@ -12,7 +12,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   /** add event listener for the file upload to get this party started */
 
   var upload = document.getElementById('upload');
-  upload.addEventListener('change', handleImage, false);
+  var memePicker = document.getElementById('memes');
+  upload.addEventListener('change', handleImageUpload, false);
+  memePicker.addEventListener('change', createImage);
 
   /** Create two canvas objects
   * display is what will be displayed, while backup is on a hidden canvas for storing the original image.
@@ -23,6 +25,36 @@ document.addEventListener('DOMContentLoaded', function(event) {
   var backup = document.getElementById('backup');
   var displayCtx = display.getContext('2d');
   var backupCtx = backup.getContext('2d');
+
+  /** When the Choose File button is clicked, create a FileReader() object and Image().
+  *  Find the right proportional dimensions to fit the img comfortably inside the available wrapper.
+  *  Draw the image on the display and backup canvases.
+  *  Additionally, set the maximum border width to 1/2 the smaller of the width or height.
+  */
+
+
+  function createImage(e) {
+    console.log(e.target.value);
+    var meme = e.target.value;
+    var img = new Image();
+    img.onload = function() {
+      var width = img.width;
+      var height = img.height;
+
+      setDimensions(width, height);
+
+      displayCtx.drawImage(img, 0, 0, width, height);
+      backupCtx.drawImage(img, 0, 0, width, height);
+    };
+
+    img.src = meme ? meme_data[meme]['path'] : e.target.result;
+  }
+
+  function handleImageUpload(e) {
+    var reader = new FileReader();
+    reader.onload = createImage;
+    reader.readAsDataURL(e.target.files[0]);
+  }
 
 
   /** Set appropriate dimensions for drawing an image on the screen
@@ -41,13 +73,14 @@ document.addEventListener('DOMContentLoaded', function(event) {
         height *= MAX_WIDTH / width;
         width = MAX_WIDTH;
       }
-      borderVal.setAttribute('max', height / 3);
+      //TODO restore borderVal
+      // borderVal.setAttribute('max', height / 3);
     } else {
       if (height > MAX_HEIGHT) {
         width *= MAX_HEIGHT / height;
         height = MAX_HEIGHT;
       }
-      borderVal.setAttribute('max', width / 3);
+      // borderVal.setAttribute('max', width / 3);
     }
 
     display.width = width;
@@ -56,31 +89,24 @@ document.addEventListener('DOMContentLoaded', function(event) {
     backup.height = height;
   }
 
-  /** When the Choose File button is clicked, create a FileReader() object and Image().
-  *  Find the right proportional dimensions to fit the img comfortably inside the available wrapper.
-  *  Draw the image on the display and backup canvases.
-  *  Additionally, set the maximum border width to 1/2 the smaller of the width or height.
-  */
-
-  function handleImage(e) {
-    var reader = new FileReader();
-    reader.onload = function(event) {
-      var img = new Image();
-      img.onload = function() {
-        var width = img.width;
-        var height = img.height;
-
-        setDimensions(width, height);
-
-        displayCtx.drawImage(img, 0, 0, width, height);
-        backupCtx.drawImage(img, 0, 0, width, height);
-      };
-      img.src = event.target.result;
-    };
-
-    reader.readAsDataURL(e.target.files[0]);
+  function writeText() {
+    var textInputs = document.querySelectorAll('input[type="text"]');
+    textInputs.forEach(drawText);
   }
 
+  function drawText(el, i) {
+    var meme = document.getElementById('memes').value;
+    var text = el.value;
+    var x = meme_data[meme]['field_positions'][i][0] * display.width;
+    var y = meme_data[meme]['field_positions'][i][1] * display.height;
+    displayCtx.font = '48px sans-serif';
+
+    x -= displayCtx.measureText(text).width / 2;
+    //TODO pick font
+    displayCtx.fillText(text, x, y);
+  }
+
+  document.getElementById('writeText').onclick = writeText;
   /** Objects to store default and dynamic values for each filter */
 
   var vals = {
