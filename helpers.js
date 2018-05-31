@@ -1,3 +1,128 @@
+var Filters = {
+
+    /** Brightness is determined simply by adding the brightness modififer [-255 to 255] */
+
+    brightness: function(rgb) {
+      if (vals.brightness !== defaults.brightness) {
+        var br = (vals.brightness - 1) * 255;
+        for (var i = 0; i < 3; i++) {
+          rgb[i] += br;
+          rgb[i] = (rgb[i] > 255) ? 255 : ((rgb[i] < 0) ? 0 : rgb[i]); //normalize values
+        }
+      }
+      return rgb;
+    },
+
+    /**
+    *  Contrast is a multi-step process. First scale to [0,255]
+    *  Then calculate cf, the contrast factor
+    *  Use that cf to adjust the distance from a median value of 128 for each RGB value
+    */
+
+    contrast: function(rgb) {
+      if (vals.contrast !== defaults.contrast) {
+        var c = (vals.contrast - 1) * 255;
+        var cf = (259 * (c + 255))/(255 * (259 - c));
+        for (var i = 0; i < 3; i++) {
+          rgb[i] = (cf * (rgb[i] - 128)) + 128;
+          rgb[i] = (rgb[i] > 255) ? 255 : ((rgb[i] < 0) ? 0 : rgb[i]); //normalize values
+        }
+      }
+      return rgb;
+    },
+
+    /** Grayscale calculates the mean of the RGB values, then averages that with the given values */
+
+    grayscale: function(rgb) {
+      if (vals.grayscale !== defaults.grayscale) {
+        var avg = (rgb[0] + rgb[1] + rgb[2]) / 3;
+        for (var i = 0; i < 3; i++) {
+          rgb[i] = (rgb[i] * (1 - vals.grayscale)) + (avg * vals.grayscale);
+        }
+      }
+      return rgb;
+    },
+
+    /** Hue is easy... once RGB is converted to HSL. Simply rotate around the hue cylinder */
+
+    hue: function(hsl) {
+      if (vals.hue !== defaults.hue) {
+        hsl[0] += (vals.hue / 360);
+        hsl[0] -= (hsl[0] > 1) ? 1 : 0; //normalize values
+      }
+      return hsl;
+    },
+
+    /** Invert by subtracting each RGB value from 255. Then average that with the existing value
+    *      based on the user-supplied value.
+    *  Quasi-BUG: An inversion value of 0.5 leads to an all gray image*/
+
+    invert: function(rgb) {
+      if (vals.invert !== defaults.invert) {
+        for (var i = 0; i < 3; i++) {
+          rgb[i] = (rgb[i] * (1 - vals.invert)) + ((255 - rgb[i]) * vals.invert);
+        }
+      }
+      return rgb;
+    },
+
+    /** Saturate is also easy... once you convert to HSL color */
+
+    saturate: function(hsl) {
+      if (vals.saturate !== defaults.saturate) {
+        hsl[1] *= vals.saturate;
+        hsl[1] = (hsl[1] > 1) ? 1 : hsl[1]; //normalize value
+      }
+      return hsl;
+    },
+
+    /** Sepia equations are taken from Intel's standard. */
+
+    sepia: function(rgb) {
+      if (vals.sepia !== defaults.sepia) {
+        var r = rgb[0];
+        var g = rgb[1];
+        var b = rgb[2];
+        var rs = 0.393 * r + 0.769 * g + 0.189 * b;
+        var gs = 0.349 * r + 0.686 * g + 0.168 * b;
+        var bs = 0.272 * r + 0.534 * g + 0.131 * b;
+        rgb[0] = (vals.sepia * rs + (1 - vals.sepia) * r) / 2;
+        rgb[1] = (vals.sepia * gs + (1 - vals.sepia) * g) / 2;
+        rgb[2] = (vals.sepia * bs + (1 - vals.sepia) * b) / 2;
+      }
+      return rgb;
+    }
+};
+/** Objects to store default and dynamic values for each filter */
+
+var vals = {
+    'blur' : '0',
+    'brightness' : '1',
+    'contrast' : '1',
+    'grayscale' : '0',
+    'hue' : '0',
+    'invert' : '0',
+    'opacity' : '1',
+    'saturate' : '1',
+    'sepia' : '0',
+  'border' : '0'
+  };
+
+var defaults = {
+    'blur' : '0',
+    'brightness' : '1',
+    'contrast' : '1',
+    'grayscale' : '0',
+    'hue' : '0',
+    'invert' : '0',
+    'opacity' : '1',
+    'saturate' : '1',
+    'sepia' : '0',
+  'border' : '0'
+  };
+
+
+
 /**
  * Converts an RGB color value to HSL. Conversion formula
  * adapted from http://en.wikipedia.org/wiki/HSL_color_space.

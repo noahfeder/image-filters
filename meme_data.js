@@ -6,6 +6,6 @@ var meme_data = {
       [0.54, 0.19],
       [0.81, 0.30]
     ],
-    path: 'img/boyfriend.jpg'
+    path: 'http://localhost:9001/boyfriend.jpg'
   }
 }

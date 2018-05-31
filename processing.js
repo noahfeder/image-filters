@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   *
   */
 
-  /** add event listener for the file upload to get this party started */
+  // Add event listeners for the file upload/meme selection
 
   var upload = document.getElementById('upload');
   var memePicker = document.getElementById('memes');
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
   /** Create two canvas objects
   * display is what will be displayed, while backup is on a hidden canvas for storing the original image.
-  * Additionally, grab the contexts for each.
+  * Additionally, grab the contexts for each as globals.
   */
 
   var display = document.getElementById('display');
@@ -26,15 +26,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   var displayCtx = display.getContext('2d');
   var backupCtx = backup.getContext('2d');
 
-  /** When the Choose File button is clicked, create a FileReader() object and Image().
-  *  Find the right proportional dimensions to fit the img comfortably inside the available wrapper.
-  *  Draw the image on the display and backup canvases.
-  *  Additionally, set the maximum border width to 1/2 the smaller of the width or height.
-  */
-
+  // Draw either the selected meme or uploaded image
 
   function createImage(e) {
-    console.log(e.target.value);
     var meme = e.target.value;
     var img = new Image();
     img.onload = function() {
@@ -46,9 +40,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
       displayCtx.drawImage(img, 0, 0, width, height);
       backupCtx.drawImage(img, 0, 0, width, height);
     };
-
+    img.setAttribute('crossOrigin', '');
     img.src = meme ? meme_data[meme]['path'] : e.target.result;
   }
+
+  // Handle uploaded image
 
   function handleImageUpload(e) {
     var reader = new FileReader();
@@ -73,14 +69,13 @@ document.addEventListener('DOMContentLoaded', function(event) {
         height *= MAX_WIDTH / width;
         width = MAX_WIDTH;
       }
-      //TODO restore borderVal
-      // borderVal.setAttribute('max', height / 3);
+      borderVal.setAttribute('max', height / 4);
     } else {
       if (height > MAX_HEIGHT) {
         width *= MAX_HEIGHT / height;
         height = MAX_HEIGHT;
       }
-      // borderVal.setAttribute('max', width / 3);
+      borderVal.setAttribute('max', width / 4);
     }
 
     display.width = width;
@@ -89,58 +84,33 @@ document.addEventListener('DOMContentLoaded', function(event) {
     backup.height = height;
   }
 
-  function writeText() {
+  function writeText(e, ctx) {
+    var ctx = ctx || displayCtx;
+    console.log(ctx);
+    var drawText = function(el, i) {
+      var meme = document.getElementById('memes').value;
+      if (!meme) { return; }
+      var text = el.value;
+      var x = meme_data[meme]['field_positions'][i][0] * display.width;
+      var y = meme_data[meme]['field_positions'][i][1] * display.height;
+      ctx.font = '48px sans-serif';
+
+      x -= ctx.measureText(text).width / 2;
+      //TODO pick font
+      ctx.fillText(text, x, y);
+    }
     var textInputs = document.querySelectorAll('input[type="text"]');
     textInputs.forEach(drawText);
   }
 
-  function drawText(el, i) {
-    var meme = document.getElementById('memes').value;
-    var text = el.value;
-    var x = meme_data[meme]['field_positions'][i][0] * display.width;
-    var y = meme_data[meme]['field_positions'][i][1] * display.height;
-    displayCtx.font = '48px sans-serif';
-
-    x -= displayCtx.measureText(text).width / 2;
-    //TODO pick font
-    displayCtx.fillText(text, x, y);
-  }
 
   document.getElementById('writeText').onclick = writeText;
-  /** Objects to store default and dynamic values for each filter */
-
-  var vals = {
-      'blur' : '0',
-      'brightness' : '1',
-      'contrast' : '1',
-      'grayscale' : '0',
-      'hue' : '0',
-      'invert' : '0',
-      'opacity' : '1',
-      'saturate' : '1',
-      'sepia' : '0',
-    'border' : '0'
-    };
-
-  var defaults = {
-      'blur' : '0',
-      'brightness' : '1',
-      'contrast' : '1',
-      'grayscale' : '0',
-      'hue' : '0',
-      'invert' : '0',
-      'opacity' : '1',
-      'saturate' : '1',
-      'sepia' : '0',
-    'border' : '0'
-    };
 
   /**
   *  When a slider value gets changed, adjust the label style to reflect if
   *      the filter is active or not.
   *  Then, apply all filters with changeAll()
   */
-
 
   var onChange = function(event) {
     var filter = this.getAttribute('name');
@@ -149,15 +119,15 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     vals[filter] = this.value;
     if (vals[filter] != defaults[filter]) {
-      filterElement.classList.remove('on');
-      filterElement.classList.add('off');
-      filterLabel.classList.remove('right');
-    } else {
-      filterElement.classList.add('on');
       filterElement.classList.remove('off');
+      filterElement.classList.add('on');
       filterLabel.classList.add('right');
+    } else {
+      filterElement.classList.add('off');
+      filterElement.classList.remove('on');
+      filterLabel.classList.remove('right');
     }
-    Filters.changeAll();
+    Master.changeAll();
   };
 
 
@@ -189,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
     for (var val in vals) {
       vals[val] = defaults[val];
     }
-    Filters.changeAll();
+    Master.changeAll();
   }
 
   var resetButton = document.querySelector('#reset');
@@ -203,100 +173,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
   *  Blur filter is handled within the writeIMG function.
   */
 
-  var Filters = {
+  var Master = {
 
-    /** Brightness is determined simply by adding the brightness modififer [-255 to 255] */
 
-    brightness: function(rgb) {
-      if (vals.brightness !== defaults.brightness) {
-        var br = (vals.brightness - 1) * 255;
-        for (var i = 0; i < 3; i++) {
-          rgb[i] += br;
-          rgb[i] = (rgb[i] > 255) ? 255 : ((rgb[i] < 0) ? 0 : rgb[i]); //normalize values
-        }
-      }
-      return rgb;
-    },
-
-    /**
-    *  Contrast is a multi-step process. First scale to [0,255]
-    *  Then calculate cf, the contrast factor
-    *  Use that cf to adjust the distance from a median value of 128 for each RGB value
-    */
-
-    contrast: function(rgb) {
-      if (vals.contrast !== defaults.contrast) {
-        var c = (vals.contrast - 1) * 255;
-        var cf = (259 * (c + 255))/(255 * (259 - c));
-        for (var i = 0; i < 3; i++) {
-          rgb[i] = (cf * (rgb[i] - 128)) + 128;
-          rgb[i] = (rgb[i] > 255) ? 255 : ((rgb[i] < 0) ? 0 : rgb[i]); //normalize values
-        }
-      }
-      return rgb;
-    },
-
-    /** Grayscale calculates the mean of the RGB values, then averages that with the given values */
-
-    grayscale: function(rgb) {
-      if (vals.grayscale !== defaults.grayscale) {
-        var avg = (rgb[0] + rgb[1] + rgb[2]) / 3;
-        for (var i = 0; i < 3; i++) {
-          rgb[i] = (rgb[i] * (1 - vals.grayscale)) + (avg * vals.grayscale);
-        }
-      }
-      return rgb;
-    },
-
-    /** Hue is easy... once RGB is converted to HSL. Simply rotate around the hue cylinder */
-
-    hue: function(hsl) {
-      if (vals.hue !== defaults.hue) {
-        hsl[0] += (vals.hue / 360);
-        hsl[0] -= (hsl[0] > 1) ? 1 : 0; //normalize values
-      }
-      return hsl;
-    },
-
-    /** Invert by subtracting each RGB value from 255. Then average that with the existing value
-    *      based on the user-supplied value.
-    *  Quasi-BUG: An inversion value of 0.5 leads to an all gray image*/
-
-    invert: function(rgb) {
-      if (vals.invert !== defaults.invert) {
-        for (var i = 0; i < 3; i++) {
-          rgb[i] = (rgb[i] * (1 - vals.invert)) + ((255 - rgb[i]) * vals.invert);
-        }
-      }
-      return rgb;
-    },
-
-    /** Saturate is also easy... once you convert to HSL color */
-
-    saturate: function(hsl) {
-      if (vals.saturate !== defaults.saturate) {
-        hsl[1] *= vals.saturate;
-        hsl[1] = (hsl[1] > 1) ? 1 : hsl[1]; //normalize value
-      }
-      return hsl;
-    },
-
-    /** Sepia equations are taken from Intel's standard. */
-
-    sepia: function(rgb) {
-      if (vals.sepia !== defaults.sepia) {
-        var r = rgb[0];
-        var g = rgb[1];
-        var b = rgb[2];
-        var rs = 0.393 * r + 0.769 * g + 0.189 * b;
-        var gs = 0.349 * r + 0.686 * g + 0.168 * b;
-        var bs = 0.272 * r + 0.534 * g + 0.131 * b;
-        rgb[0] = (vals.sepia * rs + (1 - vals.sepia) * r) / 2;
-        rgb[1] = (vals.sepia * gs + (1 - vals.sepia) * g) / 2;
-        rgb[2] = (vals.sepia * bs + (1 - vals.sepia) * b) / 2;
-      }
-      return rgb;
-    },
 
     /**
     *  First, we get the ImageData from the BACKUP context.
@@ -306,7 +185,15 @@ document.addEventListener('DOMContentLoaded', function(event) {
     *  Finally we write the image to the display canvas*/
 
     changeAll: function() {
-      var pixels = backupCtx.getImageData(0,0,backup.width,backup.height);
+      var tempCanvas = document.createElement('canvas');
+      tempCanvas.width = backup.width;
+      tempCanvas.height = backup.height;
+      var tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(backup, 0, 0);
+      console.log(backup.width, tempCanvas.width);
+      writeText(tempCtx);
+
+      var pixels = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
       var globalR = 0, globalG = 0, globalB = 0, pixelCount = 0;
       for (var i = 0; i < pixels.data.length; i += 4) {
         var r = pixels.data[i];
@@ -333,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         }
       }
       var averagePixel = '#' + parseInt(0xff - (globalR/pixelCount)).toString(16) + parseInt(0xff - (globalG/pixelCount)).toString(16) + parseInt(0xff - (globalB/pixelCount)).toString(16);
-      Filters.writeIMG(pixels, averagePixel);
+      Master.writeIMG(pixels, averagePixel);
     },
 
   /** Draw a high-contrast border that is the inverse of the average of all pixels*/
@@ -354,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
   */
 
     writeIMG: function(pixels, averagePixel) {
-      displayCtx.clearRect(0,0,display.width,display.height);
+      displayCtx.clearRect(0, 0, display.width, display.height);
       var radius = Math.round(vals.blur);
       if (radius > 0) {
         StackBlur.imageDataRGBA(pixels, 0, 0, display.width, display.height, radius);
@@ -362,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
       var newData = new ImageData(pixels.data, display.width, display.height);
       displayCtx.putImageData(newData,0,0);
     if (vals.border != defaults.border) {
-      Filters.drawBorder(vals.border, averagePixel);
+      Master.drawBorder(vals.border, averagePixel);
     }
     }
   };
